@@ -33,4 +33,30 @@ app.get('/', async (req, res) => {
 
 // Rota para a visualização em tempo real
 app.get('/realtimeproducts', async (req, res) => {
-  const products = a
+  const products = await productManager.getProducts();
+  res.render('realTimeProducts', { products });
+});
+
+// Websocket para atualizar produtos em tempo real
+io.on('connection', (socket) => {
+  console.log('Novo cliente conectado');
+
+  // Enviar lista de produtos ao cliente
+  socket.emit('productList', productManager.getProducts());
+
+  // Receber novo produto do cliente e adicionar
+  socket.on('newProduct', async (product) => {
+    await productManager.addProduct(product);
+    io.emit('productList', await productManager.getProducts()); // Enviar nova lista a todos os clientes
+  });
+
+  // Receber ID do produto para exclusão
+  socket.on('deleteProduct', async (productId) => {
+    await productManager.deleteProduct(productId);
+    io.emit('productList', await productManager.getProducts()); // Enviar nova lista a todos os clientes
+  });
+});
+
+server.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+});

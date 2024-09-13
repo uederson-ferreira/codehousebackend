@@ -24,4 +24,9 @@ class ProductManager {
 
   async deleteProduct(productId) {
     let products = await this.getProducts();
-    products = products.filter(product => product
+    products = products.filter(product => product.id !== parseInt(productId, 10));
+    await fs.writeFile(this.filePath, JSON.stringify(products, null, 2));
+  }
+}
+
+module.exports = ProductManager;
